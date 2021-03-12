@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <div class="legend-header">
+        <h2>MAP INFO</h2>
+    </div>
+    <div class="map-section">
+        <img src={{ temp_map }} usemap="#workmap">
+        <map name="workmap">
+            {% for pixels in pixel_dict %}
+              <area shape="poly" coords="{{ pixel_dict[pixels] }}" alt="{{ pixels|trim }}" title="{{ pixels|trim }}">
+            {% endfor %}
+        </map>
+    </div>
+    <h5>{{ country_info["accuracy date"] }}</h5>
+    <div class="btn-group">
+      <form name="map-type" id="myForm" action="/" method="POST" style="position:absolute; top: 40px; left:50px">
+        <button type="submit" class="button button1" id="travel_button" name="name" value="travel">Travel Restrictions</button>
+        <button type="submit" class="button button2" id="population_button" name="name" value="population">Population</button>
+        <button type="submit" class="button button3" id="covid_button" name="name" value="coronavirus">Coronavirus Cases</button>
+      </form>
+    </div>
+    {% if parameter == 'travel' %}
+    <script>disablebutton("travel_button");</script>
+    {% elif parameter == 'population' %}
+    <script>disablebutton("population_button");</script>
+    {% else %}
+    <script>disablebutton("covid_button");</script>
+    {% endif %}
+    <div class="table-section">
+        <table style="position:relative; top:220px; left:1545px">
+            <tbody>
+                {% for id in legend_fields %}
+                    <tr>
+                        <td style="background-color:{{ legend_fields[id] }}; color:{{ legend_fields[id] }}">AA</td>
+                        <td>{{ id }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="ui-widget">
+        <form name="myform2" action="" method="GET" style="position:absolute; top:20px; left:20px; height:30px; width:100px">
+            <input type="text" name="inputbox" id="search_country" autocomplete="on" autofocus onkeyup="autocom()" placeholder="Search Country" style="width: 230px; height: 25px"><P>
+            <input type="button" name="button" value="Search" onClick="getstuff(this.form)" style="position:absolute; top: 3px; left:250px; width: 85px; height: 25px">
+        </form>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        function disablebutton(button_id) {
+          document.getElementById(button_id).disabled = true;
+        }
+    </script>
+    <script type="text/javascript">
+        function autocom() {
+            var s, q;
+            var alias = JSON.parse('{{ aka2 | tojson | safe}}');
+            var countries = []
+            for (s in alias) {
+                for (q in alias[s]) {
+                    var set1 = {value: s, label: alias[s][q]}
+                    countries.push(set1)
+                }
+            }
+            console.log(countries);
+            $( "#search_country" ).autocomplete({
+                source: countries,
+                response: function( event, ui ) {
+                    var added = [];
+                    for(var i=ui.content.length-1;i>=0;i--){
+                        var cur = ui.content[i].value;
+                        if($.inArray(cur,added)==-1) {
+                            added.push(cur);
+                        }
+                        else {
+                            ui.content.splice(i,1);
+                        }
+                    }
+                }
+            });
+        };
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <link href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+        function getstuff (form) {
+            var country = form.inputbox.value;
+            var alias = JSON.parse('{{ aka | tojson | safe}}');
+            var realname = JSON.parse('{{ true_name | tojson | safe}}');
+            var info = JSON.parse('{{ country_info | tojson | safe}}');
+            var search_name, true_name = country, x, i, j, m;
+            for (j in alias) {
+                if (j == country) {
+                    x = "changed";
+                    search_name = j;
+                    break;
+                }
+                else {
+                  for (i in alias[j]) {
+                    if (country == alias[j][i]) {
+                        x = "changed";
+                        search_name = j;
+                        break;
+                    }
+                  }
+                }
+            }
+            if (x != "changed") {
+                search_name = "unknown";
+            }
+            for (m in realname) {
+                if (search_name == m) {
+                    true_name = realname[m];
+                }
+            }
+            var raw_info = info[search_name];
+            var final_info = raw_info.replace(/<br>/g, "\n");
+            alert (true_name + "\n\n" + final_info);
+        }
+    </script>
+    <style>
+        body {background-color: powderblue;}
+        h1, h2, h5   {color: #28333e; font-family:verdana; text-decoration: underline; position: absolute;}
+        h2   {font-size:50px; text-decoration: underline; right: 60px; top: 250px;}
+        h1   {font-size:80px; left: 650px; top: -65px;}
+        h5   {font-size:20px; left: 60px; top: 780px;}
+        form   {color: orange; position: absolute; right: 100px; top: 750px;}
+        img   {color: orange; position: absolute; left: 50px; top: 95px;}
+        p    {color: red;}
+        table, th, td {font-size:25px; text-align: center; text-decoration: none; border: 5px solid black; user-select: none;}
+        th, td {padding: 5px 5px;}
+
+        div {
+          border-radius: 5px;
+          padding: 20px;
+        }
+
+        .ui-widget {
+          position: absolute;
+          background: powderblue;
+          top: 680px;
+          left:1550px;
+          width: 320px;
+          height: 40px;
+        }
+
+        .btn-group button {
+          background-color: #777777;
+          border: 3px solid black;
+          border-radius: 18px;
+          color: black;
+          width: 250px;
+          margin: 5px;
+          position: relative;
+          top: 800px;
+          padding: 15px 32px;
+          font-size: 20px;
+          cursor: pointer;
+          float: left;
+        }
+
+        .btn-group:after {
+          content: "";
+          clear: both;
+          display: table;
+        }
+
+        .button1:enabled {background-color: #008CBA; cursor: pointer;}
+        .button1:enabled:hover {
+            background-color: #0B2DB3;
+            color: white;
+            text-decoration: underline;
+        }
+        .button1:enabled:active {
+            background-color: #DAA520;
+            transform: translateY(4px);
+        }
+
+        .button2:enabled {background-color: #008CBA; cursor: pointer;}
+        .button2:enabled:hover {
+            background-color: #0B2DB3;
+            color: white;
+            text-decoration: underline;
+        }
+        .button2:enabled:active {
+            background-color: #DAA520;
+            transform: translateY(4px);
+        }
+
+        .button3:enabled {background-color: #008CBA; cursor: pointer;}
+        .button3:enabled:hover {
+            background-color: #0B2DB3;
+            color: white;
+            text-decoration: underline;
+        }
+        .button3:enabled:active {
+            background-color: #DAA520;
+            transform: translateY(4px);
+        }
+    </style>
+        <title>World Map</title>
+    </head>
+    <body>
+        <h1><b>World Map</b></h1>
+        {% block body %}{% endblock %}
+    </body>
+</html>

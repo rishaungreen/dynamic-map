@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Trivia!</title>
+        <script>
+            function check () {
+            document.querySelector("input.response").style.backgroundColor = "red";
+            document.getElementById("question2").innerHTML = "Incorrect answer!";
+			}
+        </script>
+    </head>
+    <body>
+        <div class="jumbotron">
+            <h1>Trivia!</h1>
+        </div>
+        <div class="container">
+            <div class="section">
+                <h2>Part 1: Multiple Choice </h2>
+                <hr>
+					<h3>What is the distance between the Earth and the Sun?</h3>
+                    <h4 id="question1"></h4>
+            </div>
+            <div class="section">
+                <h2>Part 2: Free Response</h2>
+                <hr>
+					<h3>Who was the first man on the moon?</h3>
+					<form action="" method="GET">
+                    	<input type="text" class="response">
+                        <input type="submit" onClick="check()">
+					</form>
+                    <h4 id="question2"></h4>
+            </div>
+        </div>
+    </body>
+</html>
