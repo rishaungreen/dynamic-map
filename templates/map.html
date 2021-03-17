@@ -8,7 +8,7 @@
         <img src={{ temp_map }} usemap="#workmap">
         <map name="workmap">
             {% for pixels in pixel_dict %}
-              <area shape="poly" coords="{{ pixel_dict[pixels] }}" alt="{{ pixels|trim }}" title="{{ pixels|trim }}">
+              <area shape="poly" coords="{{ pixel_dict[pixels] }}" alt="{{ pixels|trim }}" title="{{ pixels|trim }}" onclick="getstuff(this.title)">
             {% endfor %}
         </map>
     </div>
@@ -42,7 +42,7 @@
     <div class="ui-widget">
         <form name="myform2" action="" method="GET" style="position:absolute; top:20px; left:20px; height:30px; width:100px">
             <input type="text" name="inputbox" id="search_country" autocomplete="on" autofocus onkeyup="autocom()" placeholder="Search Country" style="width: 230px; height: 25px"><P>
-            <input type="button" name="button" value="Search" onClick="getstuff(this.form)" style="position:absolute; top: 3px; left:250px; width: 85px; height: 25px">
+            <input type="button" name="button" value="Search" onClick="getstuff(this.form.inputbox.value)" style="position:absolute; top: 3px; left:250px; width: 85px; height: 25px">
         </form>
     </div>
 

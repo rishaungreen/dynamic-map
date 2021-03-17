@@ -12,8 +12,22 @@ import threading
 import random
 import string
 import time
-import gunicorn
 
+import boto3
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BUCKET_NAME = "dynamic-map"
+
+key = os.getenv('AWS_KEY_ID')
+secret = os.getenv('AWS_SECRET_KEY')
+
+s3 = boto3.client('s3',
+                  aws_access_key_id=key,
+                  aws_secret_access_key=secret)
+
+update_files = ["corona info.json", "travel info.json", "pop info.json"]
 
 app = Flask(__name__)
 
@@ -45,7 +59,6 @@ colour_dict = {
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    global img
 
     if 'list_of_all_countries' not in globals() or 'list_of_visible_countries' not in globals():
         global list_of_all_countries
@@ -70,12 +83,14 @@ def index():
 
     if request.method == "POST":
         parameter = request.form.get("name", "travel")
-        execute_operation(pixels, parameter)
+        dict_travel_info = load_info(parameter)
+        full_filename = execute_operation(pixels, parameter)
         time.sleep(1)
         return render_template("map.html", legend_fields=legend_fields, parameter=parameter, pixel_dict=pixel_dict2, temp_map=full_filename, country_info=dict_travel_info, aka2=alias_dictionary2, aka=alias_dictionary, true_name=realname_dictionary)
     # Automatically run travel restrictions
-    execute_operation(pixels)
-    time.sleep(2)
+    dict_travel_info = load_info("travel")
+    full_filename = execute_operation(pixels)
+    time.sleep(1)
     return render_template("map.html", legend_fields=legend_fields, parameter="travel", pixel_dict=pixel_dict2, temp_map=full_filename, country_info=dict_travel_info, aka2=alias_dictionary2, aka=alias_dictionary, true_name=realname_dictionary)
 
 
@@ -85,9 +100,21 @@ def reinitialise_map():
     global clone_img
     global global_indicator
 
+    clear_pics()
     global_indicator = 0
+
     original_img = cv2.imread("static/World Map 3.png")
     clone_img = copy.copy(original_img)
+
+
+# Clear other pics
+def clear_pics():
+    dir_name = "static"
+    pics = os.listdir(dir_name)
+
+    for item in pics:
+        if item.endswith(".png") and not item == "World Map 3.png" and not item == "tmp.png":
+            os.remove(os.path.join(dir_name, item))
 
 
 # Access SQLDatabase
@@ -131,7 +158,12 @@ def get_aliases():
 
 
 def load_info(parameter):
-    global dict_travel_info
+    for file in update_files:
+        file = "static/" + file
+        download_file_bucket = BUCKET_NAME
+        download_file_key = str(file)
+        s3.download_file(download_file_bucket, file, download_file_key)
+        print(str(file) + " has been downloaded")
 
     if parameter == "travel":
         # Seperate into function with ifs depending on parameter
@@ -148,20 +180,14 @@ def load_info(parameter):
     for i in dict_travel_info2:
         dict_travel_info[i] = dict_travel_info2[i].replace("\n", "<br>")
 
+    return dict_travel_info
+
 
 def random_imgname():
-    global full_filename
-    global img
-
-    try:
-        os.remove('static/' + img + '.png')
-    except FileNotFoundError:
-        pass
-    except NameError:
-        pass
     chars = string.ascii_lowercase
     img = ''.join(random.choice(chars) for i in range(15))
-    full_filename = os.path.join('static', img + '.png')
+
+    return img
 
 
 # Loop through database to get a list of countries
@@ -279,29 +305,37 @@ def crawl_in_background():
     travel_lock = threading.Lock()
     with travel_lock:
         try:
-            os.remove('static/pop info2.json')
+            os.remove('static/pop info.json')
         except FileNotFoundError:
             pass
         except PermissionError:
             pass
         try:
-            os.remove('static/corona info2.json')
+            os.remove('static/corona info.json')
         except FileNotFoundError:
             pass
         except PermissionError:
             pass
         try:
-            os.remove('static/travel info2.json')
+            os.remove('static/travel info.json')
         except FileNotFoundError:
             pass
         except PermissionError:
             pass
-        with open('static/pop info2.json', 'w') as fp:
+        with open('static/pop info.json', 'w') as fp:
             json.dump(population_dict, fp)
-        with open('static/corona info2.json', 'w') as fp:
+        with open('static/corona info.json', 'w') as fp:
             json.dump(coronavirus_dict, fp)
-        with open('static/travel info2.json', 'w') as fp:
+        with open('static/travel info.json', 'w') as fp:
             json.dump(travel_info_dict, fp)
+
+    for file in os.listdir("static/"):
+        if "info.json" in file:
+            file = "static/" + file
+            upload_file_bucket = BUCKET_NAME
+            upload_file_key = str(file)
+            s3.upload_file(file, upload_file_bucket, upload_file_key)
+            print(str(file) + " has been uploaded")
     return
 
 
@@ -417,8 +451,8 @@ def cleanhtml(raw_html):
 
 
 def execute_operation(pixel_dictionary, parameter="travel"):
-    load_info(parameter)
-    threading.Thread(target = execute_colouring, args=(pixel_dictionary, parameter)).start()
+    #return threading.Thread(target = execute_colouring, args=(pixel_dictionary, parameter)).start()
+    return execute_colouring(pixel_dictionary, parameter)
 
 
 def execute_colouring(pixel_dictionary, parameter):
@@ -469,7 +503,7 @@ def execute_colouring(pixel_dictionary, parameter):
             pass
 
     cv2.imwrite("static/tmp.png", clone_img)
-    random_imgname()
+    img = random_imgname()
 
     original_img2 = cv2.imread("static/tmp.png")
 
@@ -477,7 +511,9 @@ def execute_colouring(pixel_dictionary, parameter):
 
     cv2.imwrite(f"static/{img}.png", clone_img2)
 
-    convert_infos()
+    full_filename = os.path.join('static', img + '.png')
+
+    return full_filename
 
 
 def convert_infos():
