@@ -1,7 +1,7 @@
 # Dynamic World Map
 (By Rishaun Green)
 
-## Video Demo:  <URL HERE>
+## Video Demo:  https://www.youtube.com/watch?v=ehW_yjhBni0
 
 ## Description:
 The idea behind this project was to develop a flask application that would display a map of the world with each country coloured according to certain criteria. The particular criteria I chose were US travel advisory level, total population and total coronavirus cases.
